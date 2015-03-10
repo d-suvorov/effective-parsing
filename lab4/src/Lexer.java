@@ -8,15 +8,18 @@ import java.text.ParseException;
 
 public abstract class Lexer<T> {
     private InputStream is;
-    private int curChar;
-    private int curPos;
-    private T curToken;
+    protected int curChar;
+    protected T curToken;
+    protected int curPos;
+
+    public Lexer() {
+    }
 
     public Lexer(InputStream is) throws ParseException {
         this.is = is;
     }
 
-    private void nextChar() throws ParseException {
+    protected void nextChar() throws ParseException {
         curPos++;
         try {
             curChar = is.read();
