@@ -12,9 +12,6 @@ public abstract class Lexer<T> {
     protected T curToken;
     protected int curPos;
 
-    public Lexer() {
-    }
-
     public Lexer(InputStream is) throws ParseException {
         this.is = is;
     }

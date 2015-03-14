@@ -2,21 +2,28 @@
  * Created by dmsuvorov on 10.03.2015.
  */
 
-import java.io.IOException;
 import java.io.InputStream;
 import java.text.ParseException;
 
 enum ExprToken {
-    DIGIT,
+    NUMBER,
     PLUS, MINUS, MUL, DIV,
     LPAREN, RPAREN,
     END
 }
 
 public class ExprLexer extends Lexer<ExprToken> {
-    private int curNumber;
+    public ExprLexer(InputStream is) throws ParseException {
+		super(is);
+	}
+
+	private int curNumber;
 
     public int getCurNumber() {
+        return curNumber;
+    }
+
+    public int getAttribute() {
         return curNumber;
     }
 
@@ -26,8 +33,13 @@ public class ExprLexer extends Lexer<ExprToken> {
             nextChar();
         }
         if (Character.isDigit(curChar)) {
-            curNumber = Character.digit(curChar, 10);
-            // 
+        	curNumber = 0;
+            do {
+            	curNumber = curNumber * 10 + Character.digit(curChar, 10);
+            	nextChar();
+            } while (Character.isDigit(curChar));
+            curToken = ExprToken.NUMBER;
+            return;
         }
         switch (curChar) {
             case '+':
