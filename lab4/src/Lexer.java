@@ -14,6 +14,8 @@ public abstract class Lexer<T> {
 
     public Lexer(InputStream is) throws ParseException {
         this.is = is;
+        curPos = 0;
+        nextChar();
     }
 
     protected void nextChar() throws ParseException {
