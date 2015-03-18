@@ -12,11 +12,10 @@ public abstract class Lexer<T> {
     protected T curToken;
     protected int curPos;
 
-    public Lexer() {
-    }
-
     public Lexer(InputStream is) throws ParseException {
         this.is = is;
+        curPos = 0;
+        nextChar();
     }
 
     protected void nextChar() throws ParseException {
