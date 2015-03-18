@@ -27,7 +27,7 @@ public class ExprLexer extends Lexer<ExprToken> {
         }
         if (Character.isDigit(curChar)) {
             curNumber = Character.digit(curChar, 10);
-            // 
+            //
         }
         switch (curChar) {
             case '+':
