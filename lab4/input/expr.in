@@ -1,5 +1,6 @@
 ExprParser
 ExprLexer
+ExprToken
 %%
 NUMBER double
 PLUS
@@ -15,15 +16,15 @@ T double
 TPrime double
 F double
 %%
-E -> T EPrime { return attr[0] + attr[1]; }
-EPrime -> PLUS T EPrime { return +(attr[1] + attr[2]); }
-EPrime -> MINUS T EPrime { return -(attr[1] + attr[2]); }
+E -> T EPrime { return attr0 + attr1; }
+EPrime -> PLUS T EPrime { return +(attr1 + attr2); }
+EPrime -> MINUS T EPrime { return -(attr1 + attr2); }
 EPrime -> { return 0; }
-T -> F TPrime { return attr[0] * attr[1]; }
-TPrime -> MUL F TPrime { return attr[1] * attr[2]; }
-TPrime -> DIV F TPrime { return 1.0 / (attr[1] * attr[2]); }
+T -> F TPrime { return attr0 * attr1; }
+TPrime -> MUL F TPrime { return attr1 * attr2; }
+TPrime -> DIV F TPrime { return 1.0 / (attr1 * attr2); }
 TPrime -> { return 1; }
-F -> NUMBER { return attr[0]; }
-F -> LPAREN E RPAREN { return attr[1]; }
-F -> MINUS F { return -attr[1]; }
+F -> NUMBER { return attr0; }
+F -> LPAREN E RPAREN { return attr1; }
+F -> MINUS F { return -attr1; }
 %%
