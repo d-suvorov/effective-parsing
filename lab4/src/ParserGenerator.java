@@ -2,20 +2,61 @@
  * Created by dmsuvorov on 10.03.2015.
  */
 
-import java.io.*;
+import java.io.BufferedReader;
+import java.io.FileInputStream;
+import java.io.FileWriter;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.InputStreamReader;
+import java.io.PrintWriter;
+import java.util.Iterator;
 import java.util.Map.Entry;
+import java.util.Set;
 
 public class ParserGenerator {
-	private static String parserName, lexerName;
+	private static String parserName, lexerName, tokenName;
 
 	private static Grammar grammar;
+	
+	private static String tokenQualifiedName(String name) {
+		return tokenName + "." + name;
+	}
 
 	private static void generateNonTerminalParsingSubroutine(
-			PrintWriter outputStream, String name, String type) {
-		outputStream.print("\t" + type + " " + name + "() {\n" +
-		                   "\t\t" + type + " result;\n");
+			PrintWriter outputStream, String nonTermName, String nonTermType) {
+		outputStream.print("\t" + nonTermType + " " + nonTermName + "() {\n" +
+				           "\t\t" + tokenName + " curToken = lexer.curToken();\n");
 		
-		outputStream.print("\t\treturn result;\n" +
+		for (RightPart right : grammar.grammar.get(nonTermName)) {
+			Set<String> next = right.isEpsilon() ? grammar.getFollow(nonTermName) : grammar.getFirst(right);
+			outputStream.print("\t\tif (");
+			Iterator<String> it = next.iterator();
+			if (it.hasNext()) {
+				String s = it.next();
+				outputStream.print("curToken == " + tokenQualifiedName(s));
+			}
+			while (it.hasNext()) {
+				String s = it.next();
+				outputStream.print(" ||\n\t\t    curToken == " + tokenQualifiedName(s));
+			}
+			outputStream.print(") {\n");
+
+			for (int i = 0; i < right.right.size(); i++) {
+				Symbol symbol = right.right.get(i);
+				String name = symbol.name;
+				if (symbol.type == SymbolType.TERMINAL) {
+					
+				} else {
+					String type = grammar.nonTerminals.get(name);
+					outputStream.print("\t\t\t" + type + " attr" + i + " = " + name + "();\n");
+				}
+			}
+			
+			outputStream.print("\t\t\t" + right.action + "\n");
+			outputStream.print("\t\t}\n");
+		}
+		
+		outputStream.print("\t\tthrow new AssertionError();\n" +
 		                   "\t}\n\n");
 	}
 
@@ -35,7 +76,7 @@ public class ParserGenerator {
 				generateNonTerminalParsingSubroutine(outputStream, entry.getKey(), entry.getValue());
 			}
 
-			outputStream.println("}\n");
+			outputStream.println("}");
 		}
 	}
 
@@ -51,6 +92,7 @@ public class ParserGenerator {
 
 		parserName = br.readLine();
 		lexerName = br.readLine();
+		tokenName = br.readLine();
 		IOUtils.expectDelimiter(br, IOUtils.DEFAULT_DELIMITER);
 
 		grammar = new Grammar(br);

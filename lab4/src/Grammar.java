@@ -50,6 +50,28 @@ public class Grammar {
 	public Set<String> getFirst(String symbol) {
 		return first.get(symbol);
 	}
+	
+	public Set<String> getFirst(RightPart right) {
+		Set<String> result = new TreeSet<>();
+		boolean empty = true;
+		for (Symbol symbol : right.right) {
+			if (symbol.type == SymbolType.TERMINAL) {
+				result.add(symbol.name);
+				empty = false;
+				break;
+			}
+			Set<String> first = getFirst(symbol.name);
+			addAllButEpsilon(result, first);
+			if (!first.contains("")) {
+				empty = false;
+				break;
+			}
+		}
+		if (empty) {
+			result.add("");
+		}
+		return result;
+	}
 
 	public Set<String> getFollow(String symbol) {
 		return follow.get(symbol);
