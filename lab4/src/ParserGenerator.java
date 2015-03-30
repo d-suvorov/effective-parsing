@@ -40,24 +40,29 @@ public class ParserGenerator {
 				outputStream.print(" ||\n\t\t    curToken == " + tokenQualifiedName(s));
 			}
 			outputStream.print(") {\n");
-
-			for (int i = 0; i < right.right.size(); i++) {
-				Symbol symbol = right.right.get(i);
-				String name = symbol.name;
-				String attrName = "attr" + i;
-				if (symbol.type == SymbolType.TERMINAL) {
-					outputStream.print("\t\t\tif (lexer.curToken != " + tokenQualifiedName(name) + ") {\n" +
-				                       "\t\t\t\tthrow new ParseException(\"Expected " + name +
-                                       " at position\" , lexer.curPos());\n" +
-							           "\t\t\t}\n");
-					if (right.action.contains(attrName)) {
-						String type = grammar.terminals.get(name);
-						outputStream.println("\t\t\t" + type + " " + attrName + " = lexer.getAttribute();");
+			
+			if (!right.isEpsilon()) {
+				for (int i = 0; i < right.right.size(); i++) {
+					Symbol symbol = right.right.get(i);
+					String name = symbol.name;
+					String attrName = "attr" + i;
+					if (symbol.type == SymbolType.TERMINAL) {
+						if (name.isEmpty()) {
+							throw new AssertionError();
+						}
+						outputStream.print("\t\t\tif (lexer.curToken != " + tokenQualifiedName(name) + ") {\n" +
+					                       "\t\t\t\tthrow new ParseException(\"Expected " + name +
+	                                       " at position\" , lexer.curPos());\n" +
+								           "\t\t\t}\n");
+						if (right.action.contains(attrName)) {
+							String type = grammar.terminals.get(name);
+							outputStream.println("\t\t\t" + type + " " + attrName + " = lexer.getAttribute();");
+						}
+						outputStream.println("\t\t\tlexer.nextToken();");
+					} else {
+						String type = grammar.nonTerminals.get(name);
+						outputStream.print("\t\t\t" + type + " " + attrName + " = " + name + "();\n");
 					}
-					outputStream.println("\t\t\tlexer.nextToken();");
-				} else {
-					String type = grammar.nonTerminals.get(name);
-					outputStream.print("\t\t\t" + type + " " + attrName + " = " + name + "();\n");
 				}
 			}
 			

@@ -32,10 +32,6 @@ class ExprParser{
 		}
 		if (curToken == ExprToken.END ||
 		    curToken == ExprToken.RPAREN) {
-			if (lexer.curToken != ExprToken.) {
-				throw new ParseException("Expected  at position" , lexer.curPos());
-			}
-			lexer.nextToken();
 			return 0;
 		}
 		throw new AssertionError();
@@ -122,10 +118,6 @@ class ExprParser{
 		    curToken == ExprToken.MINUS ||
 		    curToken == ExprToken.PLUS ||
 		    curToken == ExprToken.RPAREN) {
-			if (lexer.curToken != ExprToken.) {
-				throw new ParseException("Expected  at position" , lexer.curPos());
-			}
-			lexer.nextToken();
 			return 1;
 		}
 		throw new AssertionError();
