@@ -27,3 +27,8 @@
 ## File-based project format:
 *.ipr
 *.iws
+
+# Eclipse
+bin/
+.classpath
+.project
