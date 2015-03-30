@@ -15,7 +15,7 @@ enum SymbolType {
 class Symbol {
 	String name;
 	SymbolType type;
-	
+
 	Symbol(String name, SymbolType type) {
 		this.name = name;
 		this.type = type;
@@ -25,11 +25,11 @@ class Symbol {
 class RightPart {
 	List<Symbol> right;
 	String action;
-	
+
 	boolean isEpsilon() {
 		return right.size() == 1 && right.get(0).name.isEmpty();
 	}
-	
+
 	RightPart(List<Symbol> right, String action) {
 		this.right = right;
 		this.action = action;
@@ -38,23 +38,23 @@ class RightPart {
 
 public class Grammar {
 	String start;
-	
+
 	Map<String, String> terminals;
 	Map<String, String> nonTerminals;
-	
+
 	Map<String, List<RightPart>> grammar;
-	
+
 	Map<String, Set<String>> first;
 	Map<String, Set<String>> follow;
-	
+
 	public Set<String> getFirst(String symbol) {
 		return first.get(symbol);
 	}
-	
+
 	public Set<String> getFollow(String symbol) {
 		return follow.get(symbol);
 	}
-	
+
 	private void buildFirst() {
 		first = new HashMap<>();
 		for (String term : terminals.keySet()) {
@@ -65,7 +65,7 @@ public class Grammar {
 		for (String nonTerm : nonTerminals.keySet()) {
 			first.put(nonTerm, new TreeSet<String>());
 		}
-		
+
 		boolean changed = true;
 		while (changed) {
 			changed = false;
@@ -77,21 +77,21 @@ public class Grammar {
 						changed |= firstLeft.add("");
 						continue;
 					}
-					
+
 					List<Symbol> symbols = right.right;
 					int i = 0;
 					while (i < symbols.size()) {
 						String name = symbols.get(i).name;
 						Set<String> toAdd = first.get(name);
 						changed |= firstLeft.addAll(toAdd);
-						
+
 						if (!first.get(name).contains("")) {
 							break;
 						}
-						
+
 						i++;
 					}
-					
+
 					if (i == symbols.size()) {
 						changed |= firstLeft.add("");
 					}
@@ -99,7 +99,7 @@ public class Grammar {
 			}
 		}
 	}
-	
+
 	private boolean addAllButEpsilon(Set<String> dst, Set<String> src) {
 		boolean changed = false;
 		for (String s : src) {
@@ -110,14 +110,14 @@ public class Grammar {
 		}
 		return changed;
 	}
-	
+
 	private void buildFollow() {
 		follow = new HashMap<>();
 		for (String nonTerm : nonTerminals.keySet()) {
 			follow.put(nonTerm, new TreeSet<String>());
 		}
 		follow.get(start).add("END"); // TODO
-		
+
 		boolean changed = true;
 		while (changed) {
 			changed = false;
@@ -127,24 +127,26 @@ public class Grammar {
 					if (right.isEpsilon()) {
 						continue;
 					}
-					
+
 					List<Symbol> symbols = right.right;
-					
+
 					for (int i = symbols.size() - 2; i >= 0; i--) {
 						Symbol curr = symbols.get(i);
 						if (curr.type == SymbolType.TERMINAL) {
 							continue;
 						}
 						Set<String> toAdd = first.get(symbols.get(i + 1).name);
-						changed |= addAllButEpsilon(follow.get(curr.name), toAdd);
+						changed |= addAllButEpsilon(follow.get(curr.name),
+								toAdd);
 					}
-					
+
 					for (int i = symbols.size() - 1; i >= 0; i--) {
 						Symbol curr = symbols.get(i);
 						if (curr.type == SymbolType.TERMINAL) {
 							break;
 						}
-						changed |= follow.get(curr.name).addAll(follow.get(left));
+						changed |= follow.get(curr.name).addAll(
+								follow.get(left));
 						if (!first.get(curr.name).contains("")) {
 							break;
 						}
@@ -153,15 +155,16 @@ public class Grammar {
 			}
 		}
 	}
-	
-	private void readSymbols(BufferedReader br, Map<String, String> symbols) throws IOException {
+
+	private void readSymbols(BufferedReader br, Map<String, String> symbols)
+			throws IOException {
 		String line;
 		while (!(line = br.readLine()).equals(IOUtils.DEFAULT_DELIMITER)) {
 			String[] words = line.split("\\s+");
 			symbols.put(words[0], words.length == 2 ? words[1] : null);
 		}
 	}
-	
+
 	Grammar(BufferedReader br) throws IOException {
 		terminals = new HashMap<>();
 		nonTerminals = new HashMap<>();
@@ -172,7 +175,7 @@ public class Grammar {
 		for (String left : nonTerminals.keySet()) {
 			grammar.put(left, new ArrayList<RightPart>());
 		}
-		
+
 		String line;
 		boolean firstNonTerminal = true;
 		while (!(line = br.readLine()).equals(IOUtils.DEFAULT_DELIMITER)) {
@@ -181,12 +184,18 @@ public class Grammar {
 			String left = line.substring(0, arrowIdx).trim();
 			String right = line.substring(arrowIdx + 2, braceIdx).trim();
 			String action = line.substring(braceIdx).trim();
+			if (action.charAt(0) != '{' && action.charAt(action.length() - 1) != '}') {
+				throw new IOException();
+			}
+			action = action.substring(1, action.length() - 1).trim();
 			
+			// System.out.println(left + "|" + right + "|" + action);
+
 			if (firstNonTerminal) {
 				start = left;
 				firstNonTerminal = false;
 			}
-			
+
 			String[] rightPartArray = right.split("\\s+");
 			ArrayList<Symbol> rightPartSymbols = new ArrayList<>();
 			for (String symbol : rightPartArray) {
@@ -200,32 +209,31 @@ public class Grammar {
 				}
 				rightPartSymbols.add(new Symbol(symbol, type));
 			}
-			
+
 			RightPart rightPart = new RightPart(rightPartSymbols, action);
 			grammar.get(left).add(rightPart);
 		}
-		
+
 		buildFirst();
 		buildFollow();
-		
-		for (Entry<String, Set<String>> entry : first.entrySet()) {
+
+		/*for (Entry<String, Set<String>> entry : first.entrySet()) {
 			System.out.println("First(" + entry.getKey() + ") =");
 			for (String s : entry.getValue()) {
 				System.out.println(s);
 			}
 		}
-		
+
 		System.out.println();
-		
+
 		for (Entry<String, Set<String>> entry : follow.entrySet()) {
 			System.out.println("Follow(" + entry.getKey() + ") =");
 			for (String s : entry.getValue()) {
 				System.out.println(s);
 			}
 		}
-		
-		System.out.println();
+
+		System.out.println();*/
 	}
-	
-	
+
 }
